@@ -1,0 +1,21 @@
+# Стандартные папки сборки .NET
+[Bb]in/
+[Oo]bj/
+
+# Пользовательские файлы Visual Studio
+*.user
+*.suo
+.vs/
+
+# Файлы для восстановления пакетов NuGet
+packages/
+*.nupkg
+
+# Папки с результатами тестов
+TestResults/
+
+# Если используете Rider от JetBrains
+.idea/
+
+# Если используете VS Code
+.vscode/
