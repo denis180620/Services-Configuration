@@ -23,7 +23,7 @@ namespace CongratulationService.API.Controllers
         /// <summary>
         /// Создание нового шаблона
         /// </summary>
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateTemplate([FromBody] UserTamplate template)
         {
             _logger.LogInformation("Принят запрос на создание шаблона");
@@ -87,7 +87,7 @@ namespace CongratulationService.API.Controllers
         /// <summary>
         /// Удаление шаблона
         /// </summary>
-        [HttpDelete]
+        [HttpDelete("delete")]
         public async Task<IActionResult> DeleteTemplate([FromBody] UserTamplate template)
         {
             _logger.LogInformation("Запрос на удаление шаблона. Имя: {Name}", template?.Name);

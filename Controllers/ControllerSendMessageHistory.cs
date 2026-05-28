@@ -23,16 +23,7 @@ namespace CongratulationService.API.Controllers
         /// <summary>
         /// Получить UserId из JWT токена
         /// </summary>
-        private Guid GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst("userId")?.Value
-                              ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
-                throw new UnauthorizedAccessException("UserId не найден в токене");
-
-            return Guid.Parse(userIdClaim);
-        }
+       
 
         /// <summary>
         /// Отправка нового сообщения
@@ -51,7 +42,7 @@ namespace CongratulationService.API.Controllers
             {
                 var result = await _services.HistoryMessage(new SentMessage
                 {
-                    UserId = GetCurrentUserId(),
+                    UserId = messageuser.UserId,
                     RecipientInfo = messageuser.RecipientInfo,
                     Channel = messageuser.Channel,
                     Content = messageuser.Content
@@ -90,13 +81,13 @@ namespace CongratulationService.API.Controllers
         /// Повторная отправка неудачного сообщения
         /// </summary>
         [HttpPost("retry/{messageId}")]
-        public async Task<IActionResult> RetryFailedMessage(int messageId)
+        public async Task<IActionResult> RetryFailedMessage(int messageId, Guid UserId)
         {
             _logger.LogInformation("Запрос на повторную отправку сообщения {MessageId}", messageId);
 
             try
             {
-                var result = await _services.RetryFailedMessage(messageId, GetCurrentUserId());
+                var result = await _services.RetryFailedMessage(messageId, UserId);
 
                 if (!result.IsSuccess)
                 {
@@ -132,11 +123,11 @@ namespace CongratulationService.API.Controllers
         /// Получение статуса сообщения
         /// </summary>
         [HttpGet("status/{messageId}")]
-        public async Task<IActionResult> GetMessageStatus(int messageId)
+        public async Task<IActionResult> GetMessageStatus(int messageId, Guid UserId)
         {
             try
             {
-                var result = await _services.GetMessageByIdAndUserId(messageId, GetCurrentUserId());
+                var result = await _services.GetMessageByIdAndUserId(messageId, UserId);
 
                 if (!result.IsSuccess)
                 {
@@ -170,11 +161,11 @@ namespace CongratulationService.API.Controllers
         /// Получение истории сообщений
         /// </summary>
         [HttpGet("history")]
-        public async Task<IActionResult> GetUserHistory([FromQuery] string status = null, [FromQuery] int? limit = null)
+        public async Task<IActionResult> GetUserHistory(Guid UserId, [FromQuery] string status = null, [FromQuery] int? limit = null)
         {
             try
             {
-                var result = await _services.GetUserHistory(GetCurrentUserId());
+                var result = await _services.GetUserHistory(UserId);
 
                 if (!result.IsSuccess)
                 {
@@ -225,11 +216,11 @@ namespace CongratulationService.API.Controllers
         /// Получение статистики
         /// </summary>
         [HttpGet("statistics")]
-        public async Task<IActionResult> GetStatistics()
+        public async Task<IActionResult> GetStatistics(Guid UserId)
         {
             try
             {
-                var result = await _services.GetStatistics(GetCurrentUserId());
+                var result = await _services.GetStatistics(UserId);
 
                 if (!result.IsSuccess)
                 {
@@ -269,13 +260,13 @@ namespace CongratulationService.API.Controllers
         /// Очистка старых сообщений
         /// </summary>
         [HttpDelete("clean")]
-        public async Task<IActionResult> CleanOldMessages([FromQuery] int daysToKeep = 30)
+        public async Task<IActionResult> CleanOldMessages( Guid UserId, [FromQuery] int daysToKeep = 30)
         {
             try
             {
                 _logger.LogInformation("Запрос на очистку сообщений старше {Days} дней", daysToKeep);
 
-                var result = await _services.CleanOldMessagesForUser(GetCurrentUserId(), daysToKeep);
+                var result = await _services.CleanOldMessagesForUser(UserId, daysToKeep);
 
                 if (!result.IsSuccess)
                 {
@@ -305,12 +296,12 @@ namespace CongratulationService.API.Controllers
         /// Получение всех неудачных сообщений
         /// </summary>
         [HttpGet("failed")]
-        public async Task<IActionResult> GetFailedMessages()
+        public async Task<IActionResult> GetFailedMessages(Guid UserId)
         {
             try
             {
                 _logger.LogInformation("Запрос неудачных сообщений");
-                var result = await _services.GetFailedMessages(GetCurrentUserId());
+                var result = await _services.GetFailedMessages(UserId);
 
                 if (!result.IsSuccess)
                 {
@@ -349,13 +340,13 @@ namespace CongratulationService.API.Controllers
         /// Массовая повторная отправка всех неудачных сообщений
         /// </summary>
         [HttpPost("retry-all")]
-        public async Task<IActionResult> RetryAllFailedMessages()
+        public async Task<IActionResult> RetryAllFailedMessages(Guid UserId)
         {
             try
             {
                 _logger.LogInformation("Запрос на массовую повторную отправку");
 
-                var currentUserId = GetCurrentUserId();
+                var currentUserId = UserId;
                 var failedResult = await _services.GetFailedMessages(currentUserId);
 
                 if (!failedResult.IsSuccess)
@@ -428,11 +419,11 @@ namespace CongratulationService.API.Controllers
         /// Получение подробной информации о сообщении
         /// </summary>
         [HttpGet("details/{messageId}")]
-        public async Task<IActionResult> GetMessageDetails(int messageId)
+        public async Task<IActionResult> GetMessageDetails(int messageId, Guid UserId)
         {
             try
             {
-                var result = await _services.GetMessageByIdAndUserId(messageId, GetCurrentUserId());
+                var result = await _services.GetMessageByIdAndUserId(messageId, UserId);
 
                 if (!result.IsSuccess)
                 {
