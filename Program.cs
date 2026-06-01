@@ -11,6 +11,17 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")  
+              .AllowAnyMethod()                      
+              .AllowAnyHeader()                      
+              .AllowCredentials();                   
+    });
+});
+
 // Добавляем DbContext для PostgreSQL
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -53,6 +64,23 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(secretKey),
         ClockSkew = TimeSpan.Zero
     };
+
+    // Настройки для работы с WebSocket и SignalR (если используется)
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -83,6 +111,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// ============ ПРИМЕНЕНИЕ CORS ============
+// Включаем CORS перед другими middleware
+app.UseCors("ReactApp");  // Используем политику "ReactApp"
+
+// Или если нужно использовать несколько политик:
+// app.UseCors("MultipleOrigins");
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

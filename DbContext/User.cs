@@ -20,7 +20,7 @@ public class User : IdentityUser<Guid>
     public virtual ICollection<Contact> Contacts {get; set;}
     public virtual ICollection<UserSession> UserSessions {get; set;}
 }
-public class Role : IdentityRole<int>
+public class Role : IdentityRole<Guid>
 {
     public string Description { get; set; } = string.Empty;
 }
