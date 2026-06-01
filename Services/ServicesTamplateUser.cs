@@ -64,9 +64,9 @@ public class ServicesTemplateUser
 
     public async Task<Result<List<UserTamplate>>> ListTamplate(User user)
     {
-        _logger.LogInformation("Принят запрос на получение списка шаблонов для пользователя {Username}", user.Username);
+        _logger.LogInformation("Принят запрос на получение списка шаблонов для пользователя {Username}", user.UserName);
 
-        if (string.IsNullOrWhiteSpace(user.Username))
+        if (string.IsNullOrWhiteSpace(user.UserName))
         {
             _logger.LogWarning("Попытка получить список шаблонов с пустым именем пользователя");
             return Result<List<UserTamplate>>.Failure("Пустое имя");
@@ -76,11 +76,11 @@ public class ServicesTemplateUser
 
         if (Listresult == null || Listresult.Count == 0)
         {
-            _logger.LogInformation("Шаблоны не найдены для пользователя {Username}", user.Username);
+            _logger.LogInformation("Шаблоны не найдены для пользователя {Username}", user.UserName);
             return Result<List<UserTamplate>>.Issuccess("Шаблоны не найдены, сначала создайте их");
         }
 
-        _logger.LogInformation("Успешно получено {Count} шаблонов для пользователя {Username}", Listresult.Count, user.Username);
+        _logger.LogInformation("Успешно получено {Count} шаблонов для пользователя {Username}", Listresult.Count, user.UserName);
         return Result<List<UserTamplate>>.Success(Listresult);
     }
 

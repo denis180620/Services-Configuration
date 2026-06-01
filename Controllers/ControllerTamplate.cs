@@ -62,7 +62,7 @@ namespace CongratulationService.API.Controllers
 
             var user = new User
             {
-                Username = username ?? $"user_{userId}"
+                UserName = username ?? $"user_{userId}"
             };
 
             var result = await _services.ListTamplate(user);
