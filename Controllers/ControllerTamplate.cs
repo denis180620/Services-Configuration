@@ -55,8 +55,8 @@ namespace CongratulationService.API.Controllers
         /// <summary>
         /// Получение списка шаблонов пользователя
         /// </summary>
-        [HttpGet("list/{userId}")]
-        public async Task<IActionResult> GetUserTemplates(Guid userId, [FromQuery] string username = null)
+        [HttpGet("list")]
+        public async Task<IActionResult> GetUserTemplates([FromQuery] Guid userId, [FromQuery] string username = null)
         {
             _logger.LogInformation("Запрос списка шаблонов для пользователя {UserId}", userId);
 
@@ -65,7 +65,7 @@ namespace CongratulationService.API.Controllers
                 UserName = username ?? $"user_{userId}"
             };
 
-            var result = await _services.ListTamplate(user);
+            var result = await _services.ListTamplate(userId);
 
             if (!result.IsSuccess)
             {
@@ -88,16 +88,12 @@ namespace CongratulationService.API.Controllers
         /// Удаление шаблона
         /// </summary>
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteTemplate([FromBody] UserTamplate template)
+        public async Task<IActionResult> DeleteTemplate([FromQuery] string Name, [FromQuery] string Content, [FromQuery] Guid UserId)
         {
-            _logger.LogInformation("Запрос на удаление шаблона. Имя: {Name}", template?.Name);
+            _logger.LogInformation("Запрос на удаление шаблона. Имя: {Name}", Name);
 
-            if (template == null)
-            {
-                return BadRequest(new { error = "Данные шаблона не могут быть пустыми" });
-            }
-
-            var result = await _services.DeleteTamplate(template);
+            
+            var result = await _services.DeleteTamplate(Name, Content, UserId);
 
             if (!result.IsSuccess)
             {

@@ -1,11 +1,10 @@
 using System.Text;
-using Configuration.Repository;
+using Confuguration.Repository;
 using Confuguration.Dbcontext;
 using Confuguration.Services;
 using Confuguration.ServicesSending;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,10 +14,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")  
-              .AllowAnyMethod()                      
-              .AllowAnyHeader()                      
-              .AllowCredentials();                   
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -29,14 +28,11 @@ builder.Services.AddDbContext<UserDbContext>(options =>
 // Настраиваем ASP.NET Core Identity
 builder.Services.AddIdentity<User, Role>(options =>
 {
-    // Настройки пароля
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
-
-    // Настройки пользователя
     options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<UserDbContext>()
@@ -65,7 +61,6 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 
-    // Настройки для работы с WebSocket и SignalR (если используется)
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -92,18 +87,28 @@ builder.Services.AddScoped<IContact, Contacts>();
 builder.Services.AddScoped<IUserTemplateRepository, UserTemplateRepository>();
 builder.Services.AddScoped<IUserHistoryRepository, RepositoryHistoryUser>();
 
-// Регистрируем Services
+// Регистрация конкретных классов репозиториев
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<SessionUser>();
+builder.Services.AddScoped<Contacts>();
+builder.Services.AddScoped<UserTemplateRepository>();
+builder.Services.AddScoped<RepositoryHistoryUser>();
+
+// Регистрация Services
 builder.Services.AddScoped<IServiceAuthorization, ServiceAuthorization>();
 builder.Services.AddScoped<ServicesContact, ServicesContact>();
 builder.Services.AddScoped<ServicesTemplateUser, ServicesTemplateUser>();
 builder.Services.AddScoped<ServicesHistory, ServicesHistory>();
 
-// Регистрируем Messaging Senders
+// Регистрация Messaging Senders
 builder.Services.AddScoped<EmailSender, EmailSender>();
 builder.Services.AddScoped<SmsSender, SmsSender>();
 builder.Services.AddScoped<TelegramSender, TelegramSender>();
 builder.Services.AddScoped<VkSender, VkSender>();
 builder.Services.AddScoped<MessageSenderFactory, MessageSenderFactory>();
+
+// ✅ КЛЮЧЕВОЕ ДОБАВЛЕНИЕ - регистрация IMessageSender
+builder.Services.AddScoped<IMessageSender, EmailSender>(); // используем EmailSender как реализацию по умолчанию
 
 // Добавляем контроллеры и OpenAPI
 builder.Services.AddControllers();
@@ -112,25 +117,16 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// ============ ПРИМЕНЕНИЕ CORS ============
-// Включаем CORS перед другими middleware
-app.UseCors("ReactApp");  // Используем политику "ReactApp"
+app.UseCors("ReactApp");
 
-// Или если нужно использовать несколько политик:
-// app.UseCors("MultipleOrigins");
-
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-
-// Включаем аутентификацию и авторизацию
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

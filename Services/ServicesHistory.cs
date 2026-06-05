@@ -1,4 +1,4 @@
-using Configuration.Repository;
+using Confuguration.Repository;
 using Confuguration.Dbcontext;
 using Confuguration.ServicesSending;
 using DTOResponseSending;
@@ -11,12 +11,12 @@ namespace Confuguration.Services;
 
 public class ServicesHistory
 {
-    private readonly RepositoryHistoryUser _repository;
+    private readonly IUserHistoryRepository _repository;
     private readonly IMessageSender _message;
     private readonly ILogger<ServicesHistory> _logger;
     private readonly MessageSenderFactory _factory;
 
-    public ServicesHistory(RepositoryHistoryUser repository, IMessageSender message, ILogger<ServicesHistory> logger, MessageSenderFactory factory)
+    public ServicesHistory(IUserHistoryRepository repository, IMessageSender message, ILogger<ServicesHistory> logger, MessageSenderFactory factory)
     {
         _repository = repository;
         _message = message;

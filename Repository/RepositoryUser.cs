@@ -4,7 +4,7 @@ using Configuration.DTOs;
 using Confuguration.Dbcontext;
 using Microsoft.EntityFrameworkCore;
 
-namespace Configuration.Repository
+namespace Confuguration.Repository
 {
     public interface IUserRepository
     {
@@ -52,7 +52,7 @@ namespace Configuration.Repository
         public  Task<User> ExistsUserName(string UserName)
         {
             var result = _context.Users
-                        .Where(item => item.Username == UserName)
+                        .Where(item => item.UserName == UserName)
                         .FirstOrDefaultAsync();
             return result;
         }
@@ -73,7 +73,7 @@ namespace Configuration.Repository
         {
             return await _context.Users
                     .AsNoTracking()
-                    .Where(item => item.Email == Email && item.Password == Password)
+                    .Where(item => item.Email == Email && item.PasswordHash == Password)
                     .Include(i => i.Tamplates)
                     .Include(i => i.Contacts)
                     .ToListAsync();

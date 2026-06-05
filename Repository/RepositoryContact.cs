@@ -1,7 +1,7 @@
 using Confuguration.Dbcontext;
 using Microsoft.EntityFrameworkCore;
 
-namespace Configuration.Repository;
+namespace Confuguration.Repository{
 
 public interface IContact
 {
@@ -63,6 +63,7 @@ public class Contacts : IContact
     }
     public async Task SaveChangesAsync()
     {
-        await SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
+}
 }

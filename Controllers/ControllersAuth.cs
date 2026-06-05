@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace CongratulationService.API.Controllers
 {
     [ApiController]
-    [Route("api/[controllers]")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IServiceAuthorization _services;

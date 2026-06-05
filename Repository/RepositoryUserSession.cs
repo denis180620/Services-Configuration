@@ -2,7 +2,7 @@ using Confuguration.Dbcontext;
 using DTOResponseSending;
 using Microsoft.EntityFrameworkCore;
 
-namespace Configuration.Repository
+namespace Confuguration.Repository
 {
     public interface ISessionUser
     {
