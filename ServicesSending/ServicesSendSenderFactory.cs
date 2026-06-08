@@ -36,20 +36,20 @@ public class MessageSenderFactory
         {
             _logger.LogInformation("Отправка через канал: {Channel}", message.Channel);
 
-            var sendResult = message.Channel?.ToLower() switch
+            var sendResult = await (message.Channel?.ToLower() switch
             {
-                "email" => await _email.SendAsync(message.RecipientInfo, message.Content),
-                "sms" => await _sms.SendAsync(message.RecipientInfo, message.Content),
-                "telegram" => await _telegram.SendAsync(message.RecipientInfo, message.Content)
-                
-            };
+                "email" =>  _email.SendAsync(message.RecipientInfo, message.Content),
+                "sms" =>  _sms.SendAsync(message.RecipientInfo, message.Content),
+                "telegram" =>  _telegram.SendAsync(message.RecipientInfo, message.Content),
+                _ =>  Task.FromResult(Result<ResponseSender>.Failure(errorMessage: "Некорректный канал"))
+            });
 
-            if (sendResult != null && sendResult == true)
+            if (sendResult.IsSuccess)
             {
                 return Result<ResponseSender>.Success(new ResponseSender{Success = true});
             }
 
-            return Result<ResponseSender>.Failure("Ошибка отправки");
+            return Result<ResponseSender>.Failure(sendResult.Message);
         }
         catch (Exception ex)
         {

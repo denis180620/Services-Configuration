@@ -2,6 +2,8 @@ using Confuguration.ServicesSending;
 using MailKit.Net.Smtp;
 using MimeKit;
 using Microsoft.Extensions.Configuration;
+using DTOResponseSending;
+using Twilio.Http;
 
 namespace Confuguration.ServicesSending;
 
@@ -17,7 +19,7 @@ namespace Confuguration.ServicesSending;
             _logger = logger;
         }
 
-        public async Task<bool> SendAsync(string recipient, string content)
+        public async Task<Result<ResponseSender>> SendAsync(string recipient, string content)
         {
             try
             {
@@ -46,12 +48,12 @@ namespace Confuguration.ServicesSending;
                 await smtp.SendAsync(email);
                 await smtp.DisconnectAsync(true);
 
-                return true;
+                return Result<ResponseSender>.Success(new ResponseSender {Success = true});
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ошибка отправки сообщения");
-                return false;
+                return Result<ResponseSender>.Failure(ex.Message);
             }
         }
     }

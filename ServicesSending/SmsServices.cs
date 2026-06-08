@@ -1,41 +1,53 @@
-using Twilio;
-using Twilio.Rest.Api.V2010.Account;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using SmsAero; // Пространство имён для SmsAeroClient
+using DTOResponseSending;
 
 namespace Confuguration.ServicesSending;
 
 public class SmsSender : IMessageSender
 {
     public string Channel => "SMS";
-    private readonly IConfiguration _configuration;
+    private readonly SmsAeroClient _client;
     private readonly ILogger<SmsSender> _logger;
-    private readonly string _fromNumber;
 
     public SmsSender(IConfiguration configuration, ILogger<SmsSender> logger)
     {
-        _configuration = configuration;
-        TwilioClient.Init(
-            _configuration["Twilio:AccountSid"],
-            _configuration["Twilio:AuthToken"]);
+        // Читаем учётные данные из конфигурации
+        var email = configuration["SmsAero:Email"];
+        var apiKey = configuration["SmsAero:ApiKey"];
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException(
+                "SmsAero credentials are missing. " +
+                "Please set SmsAero:Email and SmsAero:ApiKey in configuration.");
+        }
+
+        // Инициализируем клиент SmsAero
+        _client = new SmsAeroClient(email, apiKey);
         _logger = logger;
-        _fromNumber = configuration["Twilio:FromNumber"];;
     }
 
-    public async Task<bool> SendAsync(string recipient, string content)
+    public async Task<Result<ResponseSender>> SendAsync(string recipient, string content)
     {
         try
         {
-            var message = await MessageResource.CreateAsync(
-                body: content,
-                from: new Twilio.Types.PhoneNumber(_fromNumber),
-                to: new Twilio.Types.PhoneNumber(recipient));
+            // Отправляем SMS: метод ожидает номер и текст сообщения
+            string response = await _client.SmsSend(content, recipient);
 
-            return message.Status != MessageResource.StatusEnum.Failed;
+            if(response != null){
+            return Result<ResponseSender>.Success(new  ResponseSender {Success = true});
+            }
+            else
+            {
+                return Result<ResponseSender>.Failure(errorMessage: "Ошибка оправки сообщения");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка отправки сообщения");
-            return false;
+            _logger.LogError(ex, "Ошибка отправки SMS через SmsAero");
+            return Result<ResponseSender>.Failure(ex.Message);
         }
     }
 }
