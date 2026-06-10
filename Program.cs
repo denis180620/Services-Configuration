@@ -105,7 +105,7 @@ builder.Services.AddScoped<EmailSender, EmailSender>();
 builder.Services.AddScoped<SmsSender, SmsSender>();
 builder.Services.AddScoped<TelegramSender, TelegramSender>();
 builder.Services.AddScoped<VkSender, VkSender>();
-builder.Services.AddScoped<MessageSenderFactory, MessageSenderFactory>();
+builder.Services.AddScoped<MessageDispatcher, MessageDispatcher>();
 
 // ✅ КЛЮЧЕВОЕ ДОБАВЛЕНИЕ - регистрация IMessageSender
 builder.Services.AddScoped<IMessageSender, EmailSender>(); // используем EmailSender как реализацию по умолчанию

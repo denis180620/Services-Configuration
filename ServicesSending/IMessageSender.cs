@@ -7,6 +7,6 @@ namespace Confuguration.ServicesSending;
 public interface IMessageSender
 {
     string Channel {get;}
-    Task<Result<ResponseSender>> SendAsync(string recipient, string content);
+    Task<Result<ResponseSender>> SendAsync(string RecipientInfo, string content);
 
 }

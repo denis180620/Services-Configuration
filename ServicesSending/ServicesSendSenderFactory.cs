@@ -5,57 +5,29 @@ using Telegram.Bot.Types.Payments;
 
 namespace Confuguration.ServicesSending;
 
-public class MessageSenderFactory
+public class MessageDispatcher
 {
-    private readonly EmailSender _email;
-    private readonly SmsSender _sms;
-    private readonly TelegramSender _telegram;
-    private readonly ILogger<MessageSenderFactory> _logger;
+    private readonly Dictionary<string, IMessageSender> _senders;
+    private readonly ILogger<MessageDispatcher> _logger;
 
-    public MessageSenderFactory(
-        EmailSender email,
-        SmsSender sms,
-        TelegramSender telegram,
-        ILogger<MessageSenderFactory> logger)
+    public MessageDispatcher(IEnumerable<IMessageSender> sender, ILogger<MessageDispatcher> logger)
     {
-        _email = email;
-        _sms = sms;
-        _telegram = telegram;
         _logger = logger;
+        _senders = sender.ToDictionary(s => s.Channel, StringComparer.OrdinalIgnoreCase);
     }
-
-    public async Task<Result<ResponseSender>> SendAsync(SentMessage message)
+    public async Task<Result<ResponseSender>> SendAsync(string channel, string RecipientInfo, string Content)
     {
-        if (message == null)
+        if (channel == null || RecipientInfo == null || Content == null)
             return Result<ResponseSender>.Failure("Сообщение не может быть null");
 
-        if (string.IsNullOrEmpty(message.Channel))
+        if (string.IsNullOrEmpty(channel))
             return Result<ResponseSender>.Failure("Канал отправки не указан");
 
-        try
-        {
-            _logger.LogInformation("Отправка через канал: {Channel}", message.Channel);
+        if (!_senders.TryGetValue(channel, out var sender))
+            return Result<ResponseSender>.Failure($"Неизвестный канал: {channel}");
 
-            var sendResult = await (message.Channel?.ToLower() switch
-            {
-                "email" =>  _email.SendAsync(message.RecipientInfo, message.Content),
-                "sms" =>  _sms.SendAsync(message.RecipientInfo, message.Content),
-                "telegram" =>  _telegram.SendAsync(message.RecipientInfo, message.Content),
-                _ =>  Task.FromResult(Result<ResponseSender>.Failure(errorMessage: "Некорректный канал"))
-            });
-
-            if (sendResult.IsSuccess)
-            {
-                return Result<ResponseSender>.Success(new ResponseSender{Success = true});
-            }
-
-            return Result<ResponseSender>.Failure(sendResult.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка в фабрике отправки");
-            return Result<ResponseSender>.Failure($"Ошибка: {ex.Message}");
-        }
+        _logger.LogInformation("Отправка через канал: {Channel}", channel);
+        return await sender.SendAsync(RecipientInfo, Content);
     }
 }
 

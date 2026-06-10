@@ -19,15 +19,15 @@ namespace Confuguration.ServicesSending;
             _logger = logger;
         }
 
-        public async Task<Result<ResponseSender>> SendAsync(string recipient, string content)
+        public async Task<Result<ResponseSender>> SendAsync(string RecipientInfo, string content)
         {
             try
             {
-                
-                var email = new MimeMessage();
+            Console.WriteLine($"RecipientInfo = '{RecipientInfo}'");
+            var email = new MimeMessage();
                 email.From.Add(new MailboxAddress("Congratulation Service",
                     _configuration["Email:From"]));
-                email.To.Add(new MailboxAddress("", recipient));
+                email.To.Add(new MailboxAddress("", RecipientInfo));
                 email.Subject = "Поздравление!";
 
                 email.Body = new TextPart("html")
