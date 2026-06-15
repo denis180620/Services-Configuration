@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Confuguration.Services;
-using Confuguration.Dbcontext;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
+
 
 namespace CongratulationService.API.Controllers
 {
@@ -54,7 +51,7 @@ namespace CongratulationService.API.Controllers
         }
             catch (Exception ex)
         {
-                _logger.LogError("Ошибка содания контакта");
+                _logger.LogError(ex,"Ошибка содания контакта");
                 return StatusCode (500, new { message ="Внутренняя ошибка сервера"});
         }
 

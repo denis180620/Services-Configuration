@@ -24,7 +24,8 @@ public class Contacts : IContact
     public async Task<Contact> CreateContact(Contact contact)
     {
         await _context.Contacts.AddAsync(contact);
-        return contact;
+            await _context.SaveChangesAsync();
+            return contact;
     }
     public async Task<Contact> GetContact(string name, Guid userid)
     {

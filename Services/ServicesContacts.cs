@@ -37,7 +37,7 @@ public class ServicesContact
             }
             var result = await _repository.CreateContact(contact);
 
-        await _repository.SaveChangesAsync();
+  
 
         return Result<Contact>.Success(result);
         }

@@ -1,19 +1,54 @@
+## Запуск проекта
+Установите PostgreSQL любой версии, включите PgAdmin4.
 
-Конченые точки создание отправление сообщений и истории
-Метод	Эндпоинт	Описание
-POST	/api/message/send	Отправка нового сообщения
-POST	/api/message/retry/{messageId}	Повторная отправка конкретного сообщения
-POST	/api/message/retry-all/{userId}	Массовая повторная отправка всех неудачных сообщений
-GET	/api/message/status/{messageId}	Получение статуса сообщения
+Скачайте и установите последнюю версию .NET.
+
+Создайте сервер базы данных и базу данных CongratulationDB.
+
+В файле appsettings.json в строке ConnectionStrings пропишите свои Username и Password:
+
+json
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Port=5432;Database=CongratulationDB;Username=postgres;Password=postgres"
+}
+Если при запуске возникнет ошибка отсутствия миграций, выполните обновление базы данных (например, dotnet ef database update).
+
+К данному API написан клиент:
+https://github.com/denis180620/Services-Configuration-client-
+
+Важно
+В API используется JWT-авторизация. Во всех эндпоинтах (кроме авторизации) требуется передавать токен, полученный при входе.
+Временно в эндпоинтах (кроме авторизации) также передаётся userId. В следующих версиях userId будет автоматически определяться из токена.
+
+
+
+## API Endpoints
+
+Авторизация Jwt
+
+POST /api/auth/register - Регистрация
+POST /api/auth/login - Вход
+POST /api/auth/refresh - запрос нового токена авторизации
+POST /api/auth/logout - выход
+GET /api/auth/me - запрос данных себя
+
+Сообщения
+
+POST	/api/message/send - Отправка сообщения
+DELETE	/api/message/clean?daysToKeep=30 - Очистка истории сообщений
 GET	/api/message/history/{userId}	История сообщений с фильтрацией
-GET	/api/message/failed/{userId}	Список неудачных сообщений
-GET	/api/message/statistics/{userId}	Статистика по сообщениям
 GET	/api/message/details/{messageId}	Детальная информация о сообщении
-DELETE	/api/message/clean?daysToKeep=30	Очистка старых сообщений
 
-Конечные точки создание и удаление шаблонов 
 
-Операция	HTTP метод	Эндпоинт	Тело запроса
-Создание шаблона	POST	/api/template	UserTamplate
-Получение списка шаблонов	GET	/api/template/{userId}	Нет (параметр в URL)
-Удаление шаблона	DELETE	/api/template/{templateId}	Нет (параметр в URL)
+Контакты
+
+POST /api/contact/create - Создание контакта
+GET /api/contact/getContacts - Получение всех контактов пользователя
+GET /api/contact/contact - Получение одного контакта пользователя
+DELETE /api/contact/deletecontact - Удаление одного контакта
+
+Шаблоны
+
+POST /api/template/create - Создание шаблона
+GET /api/template/list - Получение списка шаблонов пользователя
+DELETE /api/template/delete - Удаление одного шаблона пользователя
