@@ -3,12 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Confuguration.Dbcontext;
 
-// ✅ Наследуемся от IdentityDbContext<User, Role, Guid> вместо DbContext
 public class UserDbContext : IdentityDbContext<User, Role, Guid>
 {
     public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
 
-    // Identity уже имеет DbSet<User>, поэтому отдельный DbSet<User> не нужен
+
     public DbSet<UserTamplate> UserTemplates { get; set; }
     public DbSet<SentMessage> SentMessages { get; set; }
     public DbSet<UserSession> UserSessions { get; set; }
@@ -16,10 +15,10 @@ public class UserDbContext : IdentityDbContext<User, Role, Guid>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // ✅ ВАЖНО: сначала вызываем base.OnModelCreating для настройки Identity
+
         base.OnModelCreating(modelBuilder);
 
-        // Переименовываем таблицы Identity (опционально)
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users");

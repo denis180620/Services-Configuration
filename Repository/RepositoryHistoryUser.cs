@@ -1,7 +1,7 @@
 using Confuguration.Dbcontext;
 using Microsoft.EntityFrameworkCore;
 
-namespace Configuration.Repository;
+namespace Confuguration.Repository{
 
 public interface IUserHistoryRepository
 {
@@ -19,7 +19,7 @@ public interface IUserHistoryRepository
     Task<int> DeleteOldHistories(DateTime olderThan);
     Task<bool> DeleteHistory(SentMessage message);
     Task<bool> DeleteHistory(int historyId);
-    Task<int> DeleteUserHistories(int userId);
+    Task<int> DeleteUserHistories(Guid userId);
     Task<int> DeleteHistoriesByStatus(string status);
     Task<bool> DeleteTemplatesByContent(string content);
     Task<int> DeleteTemplatesOlderThan(DateTime date);
@@ -133,7 +133,7 @@ public class RepositoryHistoryUser : IUserHistoryRepository
         return deleted > 0;
     }
 
-    public async Task<int> DeleteUserHistories(int userId)
+    public async Task<int> DeleteUserHistories(Guid userId)
     {
         return await _context.SentMessages
             .Where(h => h.User.Id == userId)
@@ -179,4 +179,5 @@ public class RepositoryHistoryUser : IUserHistoryRepository
             return false;
         }
     }
+}
 }

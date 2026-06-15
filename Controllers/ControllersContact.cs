@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Confuguration.Services;
-using Confuguration.Dbcontext;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
+
 
 namespace CongratulationService.API.Controllers
 {
@@ -36,7 +33,8 @@ namespace CongratulationService.API.Controllers
                     result.Data.Name,
                     result.Data.Email,
                     result.Data.NikNameTelegram,
-                    result.Data.IdVk
+                    result.Data.IdVk,
+                    result.Data.Phone
                 });
             }
             return BadRequest(new
@@ -53,17 +51,17 @@ namespace CongratulationService.API.Controllers
         }
             catch (Exception ex)
         {
-                _logger.LogError("Ошибка содания контакта");
+                _logger.LogError(ex,"Ошибка содания контакта");
                 return StatusCode (500, new { message ="Внутренняя ошибка сервера"});
         }
 
         }
     [HttpGet("getcontacts")]
-    public async Task<IActionResult> GetContacts(Guid UserId)
+    public async Task<IActionResult> GetContacts(Guid userId)
         {
             _logger.LogInformation("Принят запрос на создание на получение всех контактов");
             try{
-            var result = await _services.GetContacts(UserId);
+            var result = await _services.GetContacts(userId);
             if (result.IsSuccess)
             {
                 return Ok(new
@@ -90,11 +88,11 @@ namespace CongratulationService.API.Controllers
 
         }
         [HttpGet("contact")]
-        public async Task<IActionResult> GetContact(string name, Guid UserId)
+        public async Task<IActionResult> GetContact(string name, Guid userId)
         {
             _logger.LogInformation("Принят запрос наполчение контакта {Name}", name);
             try{
-            var result = await _services.GetContact(name, UserId);
+            var result = await _services.GetContact(name, userId);
 
             if (result.IsSuccess)
             {

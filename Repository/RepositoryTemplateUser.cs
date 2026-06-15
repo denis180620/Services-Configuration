@@ -1,18 +1,18 @@
 using Confuguration.Dbcontext;
 using Microsoft.EntityFrameworkCore;
 
-namespace Configuration.Repository;
+namespace Confuguration.Repository{
 
 public interface IUserTemplateRepository
 {
     Task<UserTamplate> CreateTamplases(UserTamplate tamplate);
-    Task<List<UserTamplate>> ListTemplate(User user);
+    Task<List<UserTamplate>> ListTemplate(Guid userId);
     Task<UserTamplate?> GetTamplates(string Name, string Content, Guid UserId);
 
     Task<bool> SaveChangesAsync();
 
     Task<bool> DeleteTemplatesByContent(int historyId, Guid userid);
-    Task<int> DeleteTemplatesOlderThan(DateTime date, Guid userid);
+    Task<int> DeleteTemplatesOlderThan(string Name, Guid userid);
 }
 
 public class UserTemplateRepository : IUserTemplateRepository
@@ -31,26 +31,27 @@ public class UserTemplateRepository : IUserTemplateRepository
         return tamplate;
     }
 
-    public async Task<List<UserTamplate>> ListTemplate(User user)
+    public async Task<List<UserTamplate>> ListTemplate(Guid userId)
     {
 
         return await _context.UserTemplates
-            .Where(item => item.User.UserId == user.UserId)
+            .Where(item => item.UserId == userId)
             .Select(item => new UserTamplate
             {
                 Id = item.Id,
+                UserId = item.UserId,
+                Name = item.Name,
                 Content = item.Content,
                 CreatedAt = item.CreatedAt
             })
             .ToListAsync();
     }
 
-    public async Task<UserTamplate?> GetTamplates(string Name, string Content, Guid UserId)
+    public async Task<UserTamplate> GetTamplates(string Name, string Content, Guid UserId)
     {
 
         return await _context.UserTemplates
-                .Where(item => item.UserId == UserId)
-            .FirstOrDefaultAsync(item => item.Content == Content || item.Name == Name);
+            .FirstOrDefaultAsync(item => item.UserId == UserId && item.Name == Name);
     }
 
     public async Task<bool> SaveChangesAsync()
@@ -81,16 +82,18 @@ public class UserTemplateRepository : IUserTemplateRepository
 
 
     /// <summary>
-    /// Удалить старые шаблоны (старше указанной даты)
+    /// Удалить шаблон 
     /// </summary>
-    public async Task<int> DeleteTemplatesOlderThan(DateTime date, Guid userid)
+    public async Task<int> DeleteTemplatesOlderThan(string Name, Guid userid)
     {
         var oldTemplates = await _context.UserTemplates
             .Where(item => item.UserId == userid)
-            .Where(t => t.CreatedAt < date)
+            .Where(t => t.Name == Name)
             .ToListAsync();
 
         _context.UserTemplates.RemoveRange(oldTemplates);
+        await _context.SaveChangesAsync();
         return oldTemplates.Count;
     }
+}
 }

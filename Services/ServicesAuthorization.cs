@@ -1,4 +1,4 @@
-using Configuration.Repository;
+using Confuguration.Repository;
 using Confuguration.Dbcontext;
 using DTOResponseSending;
 using Microsoft.AspNetCore.Identity;
@@ -17,14 +17,14 @@ namespace Confuguration.Services;
 public class ServiceAuthorization : IServiceAuthorization
 {
     private readonly ILogger<ServiceAuthorization> _logger;
-    private readonly UserRepository _repositoryUser;
+    private readonly IUserRepository _repositoryUser;
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly SessionUser _session;
     
 
-    public ServiceAuthorization(ILogger<ServiceAuthorization> logger, UserRepository userRepository, UserManager<User> userManager, RoleManager<Role> roleManager, IConfiguration configuration, SessionUser session)
+    public ServiceAuthorization(ILogger<ServiceAuthorization> logger, IUserRepository userRepository, UserManager<User> userManager, RoleManager<Role> roleManager, IConfiguration configuration, SessionUser session)
     {
         _logger = logger;
         _repositoryUser = userRepository;

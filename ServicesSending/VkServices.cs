@@ -1,7 +1,7 @@
 using VkNet;
 using VkNet.Model;
 using Microsoft.Extensions.Configuration;
-
+using DTOResponseSending;
 namespace Confuguration.ServicesSending;
 
 public class VkSender : IMessageSender
@@ -27,7 +27,7 @@ public class VkSender : IMessageSender
         });
     }
 
-    public async Task<bool> SendAsync(string recipient, string content)
+    public async Task<Result<ResponseSender>> SendAsync(string recipient, string content)
     {
         try
         {
@@ -36,7 +36,7 @@ public class VkSender : IMessageSender
             if (!long.TryParse(recipient, out long peerId))
             {
                 _logger.LogWarning("Некорректный идентификатор получателя: {Recipient}", recipient);
-                return false;
+                return Result<ResponseSender>.Failure(errorMessage: "Некорректный индификатор");
             }
 
             // Формируем параметры отправки
@@ -45,18 +45,18 @@ public class VkSender : IMessageSender
             {
                 PeerId = peerId,
                 Message = content,
-                RandomId = new Random().Next() // Генерируем случайное число
+                RandomId = Random.Shared.Next()// Генерируем случайное число
             };
 
             // Отправляем сообщение
             var messageId = await _vkApi.Messages.SendAsync(sendParams);
 
-            return true;
+            return Result<ResponseSender>.Success(new ResponseSender {Success = true});
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при отправке сообщения ВК для {PeerId}", recipient);
-            return false;
+            return Result<ResponseSender>.Failure(ex.Message);
         }
     }
 }

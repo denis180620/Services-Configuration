@@ -1,13 +1,13 @@
-using Configuration.Repository;
+using Confuguration.Repository;
 using DTOResponseSending;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 public class ServicesContact
 {
-    private readonly Contacts _repository;
+    private readonly IContact _repository;
     private readonly ILogger<ServicesContact> _logger;
 
-    public ServicesContact(Contacts repository, ILogger<ServicesContact> logger)
+    public ServicesContact(IContact repository, ILogger<ServicesContact> logger)
     {
         _repository = repository;
         _logger = logger;
@@ -37,7 +37,7 @@ public class ServicesContact
             }
             var result = await _repository.CreateContact(contact);
 
-        await _repository.SaveChangesAsync();
+  
 
         return Result<Contact>.Success(result);
         }

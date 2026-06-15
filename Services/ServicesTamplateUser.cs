@@ -1,4 +1,4 @@
-using Configuration.Repository;
+using Confuguration.Repository;
 using Confuguration.Dbcontext;
 using Confuguration.ServicesSending;
 using DTOResponseSending;
@@ -9,11 +9,11 @@ namespace Confuguration.Services;
 
 public class ServicesTemplateUser
 {
-    private readonly UserTemplateRepository _repository;
+    private readonly IUserTemplateRepository _repository;
     private readonly IMessageSender _message;
     private readonly ILogger<ServicesTemplateUser> _logger;
 
-    public ServicesTemplateUser(UserTemplateRepository repository, IMessageSender message, ILogger<ServicesTemplateUser> logger)
+    public ServicesTemplateUser(IUserTemplateRepository repository, IMessageSender message, ILogger<ServicesTemplateUser> logger)
     {
         _repository = repository;
         _message = message;
@@ -53,6 +53,7 @@ public class ServicesTemplateUser
         {
             Content = resultCreate.Content,
             Name = resultCreate.Name,
+            UserId = resultCreate.UserId
         };
 
         await _repository.SaveChangesAsync();
@@ -62,59 +63,54 @@ public class ServicesTemplateUser
         return Result<UserTamplate>.Success(result);
     }
 
-    public async Task<Result<List<UserTamplate>>> ListTamplate(User user)
+    public async Task<Result<List<UserTamplate>>> ListTamplate(Guid userId)
     {
-        _logger.LogInformation("Принят запрос на получение списка шаблонов для пользователя {Username}", user.Username);
+        _logger.LogInformation("Принят запрос на получение списка шаблонов для пользователя {userId}", userId);
 
-        if (string.IsNullOrWhiteSpace(user.Username))
-        {
-            _logger.LogWarning("Попытка получить список шаблонов с пустым именем пользователя");
-            return Result<List<UserTamplate>>.Failure("Пустое имя");
-        }
 
-        var Listresult = await _repository.ListTemplate(user);
+        var Listresult = await _repository.ListTemplate(userId);
 
         if (Listresult == null || Listresult.Count == 0)
         {
-            _logger.LogInformation("Шаблоны не найдены для пользователя {Username}", user.Username);
+            _logger.LogInformation("Шаблоны не найдены для пользователя {userId}", userId);
             return Result<List<UserTamplate>>.Issuccess("Шаблоны не найдены, сначала создайте их");
         }
 
-        _logger.LogInformation("Успешно получено {Count} шаблонов для пользователя {Username}", Listresult.Count, user.Username);
+        _logger.LogInformation("Успешно получено {Count} шаблонов для пользователя {userId}", Listresult.Count, userId);
         return Result<List<UserTamplate>>.Success(Listresult);
     }
 
-    public async Task<Result<bool>> DeleteTamplate(UserTamplate user)
+    public async Task<Result<bool>> DeleteTamplate(string Name, string Content, Guid UserId)
     {
-        _logger.LogInformation("Принят запрос на удаление шаблона. Имя: {Name}, Содержимое: {Content}", user.Name, user.Content);
+        _logger.LogInformation("Принят запрос на удаление шаблона. Имя: {Name}, Содержимое: {Content} {userId}", Name, Content, UserId);
 
-        if (string.IsNullOrWhiteSpace(user.Content))
+        if (string.IsNullOrWhiteSpace(Content))
         {
             _logger.LogWarning("Попытка удаления шаблона с пустым содержимым");
             return Result<bool>.Failure("Пустой шаблон");
         }
-        if (string.IsNullOrWhiteSpace(user.Name))
+        if (string.IsNullOrWhiteSpace(Name))
         {
             _logger.LogWarning("Попытка удаления шаблона с пустым именем");
             return Result<bool>.Failure("Пустое имя шаблона");
         }
 
-        var GetresultDelete = await _repository.GetTamplates(user.Name, user.Content, user.UserId);
+        var GetresultDelete = await _repository.GetTamplates(Name, Content, UserId);
         if (GetresultDelete == null)
         {
-            _logger.LogWarning("Попытка удаления несуществующего шаблона. Имя: {Name}, Содержимое: {Content}", user.Name, user.Content);
+            _logger.LogWarning("Попытка удаления несуществующего шаблона. Имя: {Name}, Содержимое: {Content}", Name, Content);
             return Result<bool>.Failure("Такого шаблона не существует");
         }
 
-        var result = await _repository.DeleteTemplatesByContent(user.Id, user.UserId );
+        var result = await _repository.DeleteTemplatesOlderThan(Name, UserId );
 
-        if (result == false || result == null)
+        if (result < 0)
         {
-            _logger.LogError("Ошибка при удалении шаблона. Имя: {Name}, Содержимое: {Content}", user.Name, user.Content);
+            _logger.LogError("Ошибка при удалении шаблона. Имя: {Name}, Содержимое: {Content}", Name, Content);
             return Result<bool>.Failure("Ошибка удаления шаблона");
         }
 
-        _logger.LogInformation("Шаблон успешно удален. Имя: {Name}, Содержимое: {Content}", user.Name, user.Content);
-        return Result<bool>.Success(result);
+        _logger.LogInformation("Шаблон успешно удален. Имя: {Name}, Содержимое: {Content} {userId}", Name, Content, UserId);
+        return Result<bool>.Success(true);
     }
 }
