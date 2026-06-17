@@ -9,8 +9,31 @@
 
 json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=CongratulationDB;Username=postgres;Password=postgres"
+  "DefaultConnection": "Host=localhost;Port=5432;Database=CongratulationDB;Username=name;Password=password"
 }
+
+
+Так же завести аккаунты в телеграмм, email и smsaero
+
+Telegram зайти в приложение и в поиске найти ник @BotFather завести бота по предложенно инструкции полученый ключ API вставить сюда 
+
+    "Telegram:Token": "ваш токен"
+
+Email создать ключ для быстрого доступа к своей почте и вставить данные сюда
+
+"Email:SmtpServer" : "smtp.yandex.com",
+  "Email:Port": "587",
+  "Email:Username": "ваш логин",
+  "Email:Password": "ключ быстрого доступа",
+  "Email:From": "ваш логин"
+
+SmsAero зарегистрироваться и сгенерировать ключ доступа в настройках и заплнить сюда
+
+    "SmsAero": {
+      "Email": "ваш логин",
+      "ApiKey": "ключ"
+    }
+
 Если при запуске возникнет ошибка отсутствия миграций, выполните обновление базы данных (например, dotnet ef database update).
 
 К данному API написан клиент:
@@ -18,7 +41,7 @@ https://github.com/denis180620/Services-Configuration-client-
 
 Важно
 В API используется JWT-авторизация. Во всех эндпоинтах (кроме авторизации) требуется передавать токен, полученный при входе.
-Временно в эндпоинтах (кроме авторизации) также передаётся userId. В следующих версиях userId будет автоматически определяться из токена.
+UserId берются из коробки Idenity
 
 
 

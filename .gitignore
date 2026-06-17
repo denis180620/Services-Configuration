@@ -19,3 +19,6 @@ TestResults/
 
 # Если используете VS Code
 .vscode/
+
+appsettings.json
+appsettings.json

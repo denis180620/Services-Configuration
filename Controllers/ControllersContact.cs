@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Security.Claims;
 
 namespace CongratulationService.API.Controllers
 {
@@ -160,11 +160,9 @@ namespace CongratulationService.API.Controllers
         }
         private Guid GetUserIdFromToken()
         {
-            var userIdClaim = User.FindFirst("UserId")?.Value;
-            if(string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
                 throw new UnauthorizedAccessException("UserId not found is token");
-            }
             return userId;
         }
     }

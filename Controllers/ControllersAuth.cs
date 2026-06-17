@@ -2,9 +2,8 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Configuration.DTOs;
 using Confuguration.Services;
-using DTOResponseSending;
-using Org.BouncyCastle.Security;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CongratulationService.API.Controllers
 {
@@ -33,8 +32,7 @@ namespace CongratulationService.API.Controllers
             return Ok(new
             {
                 success = true,
-                accessToken = result.Data.JwtToken,
-                userId = result.Data.UserId
+                accessToken = result.Data.JwtToken
             });
         }
         [HttpPost("login")]
@@ -52,8 +50,7 @@ namespace CongratulationService.API.Controllers
             return Ok(new
             {
                 success = true,
-                accessToken = result.Data.JwtToken,
-                userId = result.Data.UserId
+                accessToken = result.Data.JwtToken
             });
 
         }
@@ -96,7 +93,7 @@ namespace CongratulationService.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var user = User.Claims.FirstOrDefault(item => item.Type == "UserId");
+            var user = User.Claims.FirstOrDefault(item => item.Type == ClaimTypes.NameIdentifier);
             if (user == null || !Guid.TryParse(user.Value, out var userId))
             {
                 return Unauthorized(new { success = false, message = "Invalid token" });

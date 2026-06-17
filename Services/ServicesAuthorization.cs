@@ -242,7 +242,7 @@ public class ServiceAuthorization : IServiceAuthorization
     }
     private async Task<UserSession> GenerateTokensAsync(User user, Guid userId)
     {
-        var accessToken = await GenerateAccessTokenAsync(user, userId);
+        var accessToken = await GenerateAccessTokenAsync(user);
         var refreshToken = GenerateRefreshToken();
 
         var refreshTokenExpirationDays = _configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7);
@@ -268,15 +268,13 @@ public class ServiceAuthorization : IServiceAuthorization
         return userSession;
     }
 
-    private async Task<string> GenerateAccessTokenAsync(User user, Guid userId)
+    private async Task<string> GenerateAccessTokenAsync(User user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
 
         var claims = new List<Claim>
     {
-        // Кладем в токен ваш кастомный UserId
-        new Claim("UserId", userId.ToString()), // Кастомный claim
         new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // Identity Id
         new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
