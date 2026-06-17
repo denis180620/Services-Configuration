@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Security.Claims;
 
 namespace CongratulationService.API.Controllers
 {
@@ -23,6 +23,9 @@ namespace CongratulationService.API.Controllers
         {
             _logger.LogInformation("Принят запрос на создание контакта");
             try{
+
+            var currentUserId = GetUserIdFromToken();
+            contact.UserId = currentUserId;
             var result = await _services.CreateContact(contact);
 
             if (result.IsSuccess)
@@ -57,11 +60,12 @@ namespace CongratulationService.API.Controllers
 
         }
     [HttpGet("getcontacts")]
-    public async Task<IActionResult> GetContacts(Guid userId)
+    public async Task<IActionResult> GetContacts()
         {
             _logger.LogInformation("Принят запрос на создание на получение всех контактов");
             try{
-            var result = await _services.GetContacts(userId);
+                var currentUserId = GetUserIdFromToken();
+            var result = await _services.GetContacts(currentUserId);
             if (result.IsSuccess)
             {
                 return Ok(new
@@ -88,11 +92,12 @@ namespace CongratulationService.API.Controllers
 
         }
         [HttpGet("contact")]
-        public async Task<IActionResult> GetContact(string name, Guid userId)
+        public async Task<IActionResult> GetContact(string name)
         {
             _logger.LogInformation("Принят запрос наполчение контакта {Name}", name);
             try{
-            var result = await _services.GetContact(name, userId);
+                var currentUserId = GetUserIdFromToken();
+            var result = await _services.GetContact(name, currentUserId);
 
             if (result.IsSuccess)
             {
@@ -122,11 +127,12 @@ namespace CongratulationService.API.Controllers
             }
         }
         [HttpDelete("deletecontact")]
-        public async Task<IActionResult> DeleteContact(int id,string name, Guid UserId)
+        public async Task<IActionResult> DeleteContact(int id,string name)
         {
             _logger.LogInformation("Принят запрос на удаления контакта");
             try{
-            var result = await _services.DeleteContact(id,name, UserId);
+                var currentUserId = GetUserIdFromToken();
+            var result = await _services.DeleteContact(id,name, currentUserId);
 
             if (result.IsSuccess)
             {
@@ -151,6 +157,13 @@ namespace CongratulationService.API.Controllers
                 _logger.LogError("Ошибка получения контакта, {Name}", name);
                 return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
             }
+        }
+        private Guid GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+                throw new UnauthorizedAccessException("UserId not found is token");
+            return userId;
         }
     }
 }

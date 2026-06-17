@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Confuguration.Services;
 using Confuguration.Dbcontext;
-using DTOResponseSending;
+using System.Security.Claims;
 
 namespace CongratulationService.API.Controllers
 {
@@ -27,12 +27,12 @@ namespace CongratulationService.API.Controllers
         public async Task<IActionResult> CreateTemplate([FromBody] UserTamplate template)
         {
             _logger.LogInformation("Принят запрос на создание шаблона");
-
+            var currentUserId = GetUserIdFromToken();
             if (template == null)
             {
                 return BadRequest(new { error = "Тело запроса не может быть пустым" });
             }
-
+            template.UserId = currentUserId;
             var result = await _services.CreateTamplate(template);
 
             if (!result.IsSuccess)
@@ -56,16 +56,13 @@ namespace CongratulationService.API.Controllers
         /// Получение списка шаблонов пользователя
         /// </summary>
         [HttpGet("list")]
-        public async Task<IActionResult> GetUserTemplates([FromQuery] Guid userId, [FromQuery] string username = null)
+        public async Task<IActionResult> GetUserTemplates( [FromQuery] string username = null)
         {
-            _logger.LogInformation("Запрос списка шаблонов для пользователя {UserId}", userId);
+            _logger.LogInformation("Запрос списка шаблонов для пользователя");
 
-            var user = new User
-            {
-                UserName = username ?? $"user_{userId}"
-            };
+            var currentUserId = GetUserIdFromToken();
 
-            var result = await _services.ListTamplate(userId);
+            var result = await _services.ListTamplate(currentUserId);
 
             if (!result.IsSuccess)
             {
@@ -88,12 +85,13 @@ namespace CongratulationService.API.Controllers
         /// Удаление шаблона
         /// </summary>
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteTemplate([FromQuery] string Name, [FromQuery] string Content, [FromQuery] Guid UserId)
+        public async Task<IActionResult> DeleteTemplate([FromQuery] string Name, [FromQuery] string Content)
         {
             _logger.LogInformation("Запрос на удаление шаблона. Имя: {Name}", Name);
 
-            
-            var result = await _services.DeleteTamplate(Name, Content, UserId);
+            var currentUserId = GetUserIdFromToken();
+
+            var result = await _services.DeleteTamplate(Name, Content, currentUserId);
 
             if (!result.IsSuccess)
             {
@@ -110,6 +108,15 @@ namespace CongratulationService.API.Controllers
                 message = "Шаблон успешно удален",
                 data = result.Data
             });
+        }
+        private Guid GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedAccessException("UserId not found is token");
+            }
+            return userId;
         }
     }
 }
