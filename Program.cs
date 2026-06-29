@@ -106,10 +106,15 @@ builder.Services.AddScoped<SmsSender, SmsSender>();
 builder.Services.AddScoped<TelegramSender, TelegramSender>();
 builder.Services.AddScoped<VkSender, VkSender>();
 builder.Services.AddScoped<MessageDispatcher, MessageDispatcher>();
+builder.Services.AddScoped<IMessageSender, EmailSender>();
 
-// ✅ КЛЮЧЕВОЕ ДОБАВЛЕНИЕ - регистрация IMessageSender
-builder.Services.AddScoped<IMessageSender, EmailSender>(); // используем EmailSender как реализацию по умолчанию
-
+builder.Services.AddSingleton<IMessagePublisher>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var logger = sp.GetRequiredService<ILogger<RabbitMqMessageSender>>();
+    return RabbitMqMessageSender.CreateAsync(config, logger).GetAwaiter().GetResult();
+});
+builder.Services.AddHostedService<MessageConsumerServices>();
 // Добавляем контроллеры и OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -33,7 +33,18 @@ SmsAero зарегистрироваться и сгенерировать кл�
       "Email": "ваш логин",
       "ApiKey": "ключ"
     }
+Для запуска очереди сообщений RabbitMq нужно скачать его или сделать контейнер в Doker и запустить и заполнить свои данные в сюда:
 
+"RabbitMQ":{
+    "HostName": "localhost",
+    "Port": 5672,
+    "UserName": "username",
+    "Password": "yoyr_password",
+    "VirtualHost": "/",
+    "QueueName": "message.queue",
+    "ExchangeName": "message.exchange",
+    "RoutingKey": "send"
+  }
 Если при запуске возникнет ошибка отсутствия миграций, выполните обновление базы данных (например, dotnet ef database update).
 
 К данному API написан клиент:

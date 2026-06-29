@@ -17,3 +17,12 @@ public class MessageStatistics
     public int PendingCount { get; set; }
     public Dictionary<string, int> ByChannel { get; set; } = new();
 }
+
+public class MessagePublicationDto
+{
+    public int MessageId {get; set;}
+    public Guid UserId {get; set;}
+    public string RecipientInfo {get; set;}
+    public string Content {get; set;}
+    public string Channel {get; set;}
+}

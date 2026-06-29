@@ -15,13 +15,15 @@ public class ServicesHistory
     private readonly IMessageSender _message;
     private readonly ILogger<ServicesHistory> _logger;
     private readonly MessageDispatcher _factory;
+    private readonly IMessagePublisher _publisher;
 
-    public ServicesHistory(IUserHistoryRepository repository, IMessageSender message, ILogger<ServicesHistory> logger, MessageDispatcher factory)
+    public ServicesHistory(IUserHistoryRepository repository, IMessageSender message, ILogger<ServicesHistory> logger, MessageDispatcher factory, IMessagePublisher publisher)
     {
         _repository = repository;
         _message = message;
         _logger = logger;
         _factory = factory;
+        _publisher = publisher;
     }
 
     /// <summary>
@@ -66,53 +68,37 @@ public class ServicesHistory
 
         _logger.LogInformation("Создана запись истории с ID {MessageId} для получателя {Recipient}", message.Id, message.RecipientInfo);
 
-        // Отправляем сообщение
+        var dto = new MessagePublicationDto
+        {
+            MessageId = message.Id,
+            UserId = message.UserId,
+            RecipientInfo = message.RecipientInfo,
+            Content = message.Content,
+            Channel = message.Channel
+        };
+
         try
         {
-            // Обновляем статус на "Sending"
-            message.Status = "Sending";
+            var published = await _publisher.PublishMessageAsync(dto);
+            if (!published)
+            {
+                _logger.LogWarning("Сообщение {MessageId} не опубликовано в RabbitMQ, будет повторно обработано", message.Id);
+                return Result<SentMessage>.Success(message, "Сообщение поставлено в очередь");
+            }
+            message.Status = "Queued"; 
             message.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateHistoryMessage(message);
             await _repository.SaveChangesAsync();
 
-            var sendResult = await _factory.SendAsync(message.Channel, message.RecipientInfo, message.Content);
-
-            // Обновляем статус на основе результата отправки
-            if (sendResult.IsSuccess && sendResult.Data?.Success == true)
-            {
-                message.Status = "Sent";
-                _logger.LogInformation("Сообщение {MessageId} успешно отправлено получателю {Recipient}",
-                    message.Id, message.RecipientInfo);
-
-                message.UpdatedAt = DateTime.UtcNow;
-                await _repository.SaveChangesAsync();
-
-                return Result<SentMessage>.Success(message, "Сообщение успешно отправлено");
-            }
-            else
-            {
-                message.Status = "Failed";
-                var error = sendResult.Data?.ErrorMessage ?? "Неизвестная ошибка";
-                _logger.LogWarning("Не удалось отправить сообщение {MessageId} получателю {Recipient}. Ошибка: {Error}",
-                    message.Id, message.RecipientInfo, error);
-
-                message.UpdatedAt = DateTime.UtcNow;
-                await _repository.SaveChangesAsync();
-
-                return Result<SentMessage>.Failure($"Ошибка отправки: {error}");
-            }
+            return Result<SentMessage>.Success(message, "Сообщение успешно опубликовано в очередь");
         }
         catch (Exception ex)
         {
-            // Обработка ошибок
-            message.Status = "Failed";
-            message.UpdatedAt = DateTime.UtcNow;
-            await _repository.SaveChangesAsync();
-
-            _logger.LogError(ex, "Ошибка при отправке сообщения {MessageId} получателю {Recipient}",
-                message.Id, message.RecipientInfo);
-
-            return Result<SentMessage>.Failure($"Ошибка отправки: {ex.Message}");
+            _logger.LogError(ex, "Ошибка публикации сообщения {MessageId}", message.Id);
+            // Тоже возвращаем успех, потому что запись в БД есть, и мы её потом обработаем
+            return Result<SentMessage>.Success(message, "Сообщение сохранено, но очередь временно недоступна");
         }
+        
     }
 
     /// <summary>

@@ -9,6 +9,7 @@ public interface IUserHistoryRepository
     Task<List<SentMessage>> HistoryListMessage(User user);
     Task<SentMessage?> GetHistory(SentMessage message);
     Task<bool> SaveChangesAsync();
+        Task<SentMessage> UpdateHistoryMessage(SentMessage historymessage);
 
     // Новые методы с Guid
     Task<List<SentMessage>> HistoryListMessageByUserId(Guid userId);
@@ -40,6 +41,12 @@ public class RepositoryHistoryUser : IUserHistoryRepository
         await _context.SentMessages.AddAsync(historymessage);
         return historymessage;
     }
+    public async Task<SentMessage> UpdateHistoryMessage(SentMessage historymessage)
+        {
+            _context.SentMessages.Update(historymessage);
+            await _context.SaveChangesAsync();
+            return historymessage;
+        }
 
     public async Task<List<SentMessage>> HistoryListMessage(User user)
     {

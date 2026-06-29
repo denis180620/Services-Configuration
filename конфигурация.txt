@@ -18,15 +18,15 @@
   
     "SmsAero": {
       "Email": "denis.shabalin2000@gmail.com",
-      "ApiKey": "your-passwordw"
+      "ApiKey": "pbzTvuTCOShb97dyE7avlT1jIyaw"
     }
   ,
-    "Telegram:Token": "your-token"
+    "Telegram:Token": "8800388479:AAH79Z9P1XoEaSSE1kcFPEVd2PnI0BjtTr0"
   ,
   "Email:SmtpServer" : "smtp.yandex.com",
   "Email:Port": "587",
   "Email:Username": "denis.shabai2000@yandex.ru",
-  "Email:Password": "your-password",
+  "Email:Password": "tnisdcarqxamldeo",
   "Email:From": "denis.shabai2000@yandex.ru",
   "AllowedHosts": "*",
   "RabbitMQ":{
